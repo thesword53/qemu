@@ -2287,18 +2287,7 @@ esac
 # opengl probe (for sdl2, gtk)
 
 if test "$opengl" != "no" ; then
-  epoxy=no
   if $pkg_config epoxy; then
-    cat > $TMPC << EOF
-#include <epoxy/egl.h>
-int main(void) { return 0; }
-EOF
-    if compile_prog "" "" ; then
-      epoxy=yes
-    fi
-  fi
-
-  if test "$epoxy" = "yes" ; then
     opengl_cflags="$($pkg_config --cflags epoxy)"
     opengl_libs="$($pkg_config --libs epoxy)"
     opengl=yes
@@ -2333,6 +2322,16 @@ int main(void)
 EOF
   if compile_prog "" ""; then
     have_usbfs=yes
+  fi
+fi
+
+if test "$opengl" = "yes"; then
+  cat > $TMPC << EOF
+#include <epoxy/egl.h>
+int main(void) { return 0; }
+EOF
+  if compile_prog "" "" ; then
+    egl=yes
   fi
 fi
 
@@ -2889,6 +2888,9 @@ if test "$opengl" = "yes" ; then
   echo "CONFIG_OPENGL=y" >> $config_host_mak
   echo "OPENGL_CFLAGS=$opengl_cflags" >> $config_host_mak
   echo "OPENGL_LIBS=$opengl_libs" >> $config_host_mak
+  if test "$egl" = "yes" ; then
+    echo "CONFIG_EGL=y" >> $config_host_mak
+  fi
 fi
 
 # XXX: suppress that
